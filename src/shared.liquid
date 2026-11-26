@@ -1,0 +1,68 @@
+{% template vikunja_task %}
+  <div class="item vikunja-task" style="padding-left: {{ depth | times: 18 }}px;">
+    <span class="vikunja-checkbox{% if task.done %} vikunja-checkbox--done{% endif %}">{% if task.done %}✓{% endif %}</span><span class="vikunja-task-text {% if compact %}description{% else %}label{% endif %}">{% if task.done %}<s>{{ task.title | escape }}</s>{% else %}{{ task.title | escape }}{% endif %}</span>
+  </div>
+{% endtemplate %}
+{% template vikunja_view %}
+<style>
+  .vikunja-list { width: 100%; overflow: hidden; }
+  .vikunja-list--full { height: 100%; column-count: 2; column-gap: 24px; column-fill: auto; }
+  .vikunja-project { font-size: 1.25em; font-weight: 700; line-height: 1.2; margin: 10px 0 5px; color: #666; break-after: avoid; }
+  .vikunja-task { display: flex; align-items: center; gap: 8px; break-inside: avoid; }
+  .vikunja-checkbox { box-sizing: border-box; flex: 0 0 14px; width: 14px; height: 14px; border: 2px solid #000; font-size: 13px; font-weight: 700; line-height: 10px; text-align: center; }
+  .vikunja-task-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+<div class="layout layout--col">
+  <div class="vikunja-list{% unless compact %} vikunja-list--full{% endunless %}">
+    {% assign selections = trmnl.plugin_settings.custom_fields_values.projects | split: ',' %}
+    {% for selection in selections limit: 6 %}
+      {% case forloop.index0 %}
+        {% when 0 %}{% assign project = p0 %}{% assign response = t0 %}{% assign completed = d0 %}
+        {% when 1 %}{% assign project = p1 %}{% assign response = t1 %}{% assign completed = d1 %}
+        {% when 2 %}{% assign project = p2 %}{% assign response = t2 %}{% assign completed = d2 %}
+        {% when 3 %}{% assign project = p3 %}{% assign response = t3 %}{% assign completed = d3 %}
+        {% when 4 %}{% assign project = p4 %}{% assign response = t4 %}{% assign completed = d4 %}
+        {% when 5 %}{% assign project = p5 %}{% assign response = t5 %}{% assign completed = d5 %}
+      {% endcase %}
+      {% assign tasks = response.data %}
+      {% if tasks == nil %}{% assign tasks = response.items %}{% endif %}
+      {% assign completed_tasks = completed.data %}
+      {% if completed_tasks == nil %}{% assign completed_tasks = completed.items %}{% endif %}
+      {% assign show_completed = trmnl.plugin_settings.custom_fields_values.done_today %}
+      {% if tasks != nil and completed_tasks != nil %}{% if show_completed == 'true' or show_completed == true %}{% assign tasks = tasks | concat: completed_tasks %}{% endif %}{% endif %}
+      <div class="vikunja-project {% if compact %}label{% else %}title title--small{% endif %}">{{ project.title | default: selection | escape }}</div>
+      {% if project.title == blank or tasks == nil %}
+        <div class="item description">Unable to load project or tasks. Check IDs, token and filter.</div>
+        {% if project.message != blank %}<div class="item description">{{ project.message | escape }}</div>{% endif %}
+        {% if response.message != blank %}<div class="item description">{{ response.message | escape }}</div>{% endif %}
+      {% elsif tasks.size == 0 %}
+        <div class="item description">No matching tasks</div>
+      {% else %}
+        {% for task in tasks %}
+          {% assign parents = task.related_tasks.parenttask %}
+          {% assign parent_visible = false %}
+          {% for parent in parents %}{% for candidate in tasks %}{% if candidate.id == parent.id %}{% assign parent_visible = true %}{% endif %}{% endfor %}{% endfor %}
+          {% unless parent_visible %}
+            {% render 'vikunja_task', task: task, depth: 0, compact: compact %}
+            {% for child in tasks %}
+              {% for parent in child.related_tasks.parenttask %}
+                {% if parent.id == task.id %}
+                  {% render 'vikunja_task', task: child, depth: 1, compact: compact %}
+                  {% for grandchild in tasks %}
+                    {% for grandparent in grandchild.related_tasks.parenttask %}
+                      {% if grandparent.id == child.id %}{% render 'vikunja_task', task: grandchild, depth: 2, compact: compact %}{% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          {% endunless %}
+        {% endfor %}
+      {% endif %}
+      {% if show_completed == 'true' or show_completed == true %}{% if completed_tasks == nil %}<div class="item description">Unable to load completed tasks. {{ completed.message | escape }}</div>{% endif %}{% endif %}
+    {% endfor %}
+    {% if selections.size > 6 %}<div class="item description">Only the first six projects are displayed.</div>{% endif %}
+  </div>
+</div>
+<div class="title_bar"><span class="title">Vikunja Tasks</span><span class="instance">{{ instance_name | escape }}</span></div>
+{% endtemplate %}

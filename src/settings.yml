@@ -1,0 +1,38 @@
+---
+strategy: polling
+name: Vikunja Tasks
+description: Ordered project task lists
+framework_version: 3.4.7
+polling_verb: get
+polling_url: |
+  {% assign selections = projects | split: ',' %}
+  {% for selection in selections limit: 6 %}{% assign ids = selection | strip | split: ':' %}{{ vikunja_server }}/api/v1/projects/{{ ids[0] | strip }}
+  {% assign task_filter = 'done = false' %}{% if advanced_filter != blank %}{% capture task_filter %}{{ task_filter }} && ({{ advanced_filter }}){% endcapture %}{% endif %}{{ vikunja_server }}/api/v1/projects/{{ ids[0] | strip }}/views/{{ ids[1] | strip }}/tasks?sort_by%5B%5D=position&order_by%5B%5D=asc&per_page=100&filter_timezone={{ trmnl.user.time_zone_iana | default: 'UTC' | url_encode }}&filter={{ task_filter | url_encode }}
+  {% assign completed_filter = 'done = true && done_at >= now/d && done_at < now+1d/d' %}{% if advanced_filter != blank %}{% capture completed_filter %}{{ completed_filter }} && ({{ advanced_filter }}){% endcapture %}{% endif %}{{ vikunja_server }}/api/v1/projects/{{ ids[0] | strip }}/tasks?per_page=100&filter_timezone={{ trmnl.user.time_zone_iana | default: 'UTC' | url_encode }}&filter={{ completed_filter | url_encode }}
+  {% endfor %}
+polling_headers: 'Authorization: Bearer {{ api_token }}'
+no_screen_padding: 'no'
+dark_mode: 'no'
+refresh_interval: 15
+custom_fields:
+  - keyname: vikunja_server
+    field_type: url
+    name: Vikunja Server address
+    description: Base URL without a trailing slash or /api/v1
+  - keyname: api_token
+    field_type: password
+    name: API Token
+  - keyname: projects
+    field_type: string
+    name: Projects and views
+    description: 'Comma-separated project ID:view ID pairs, e.g. 1:4, 2:9'
+  - keyname: done_today
+    field_type: boolean
+    name: Done today
+    default: false
+    optional: true
+  - keyname: advanced_filter
+    field_type: string
+    name: Advanced filter
+    description: Optional Vikunja filter, for example priority >= 3
+    optional: true
