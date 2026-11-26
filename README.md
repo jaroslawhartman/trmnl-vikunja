@@ -14,12 +14,7 @@ Display tasks from your [Vikunja](https://vikunja.io/) projects on a [TRMNL](htt
 
 ## Installation
 
-1. Create a ZIP archive containing the files in `src/` at the root of the archive. From the repository directory, run:
-
-   ```sh
-   zip -j vikunja-trmnl-import.zip src/settings.yml src/shared.liquid src/full.liquid src/half_horizontal.liquid src/half_vertical.liquid src/quadrant.liquid
-   ```
-
+1. Download the plugin ZIP from the [releases page](https://github.com/jaroslawhartman/trmnl-vikunja/releases).
 2. In TRMNL, open **Private Plugins**, choose **Import new**, and select the ZIP. See [TRMNL's import guide](https://help.trmnl.com/en/articles/10542599-importing-and-exporting-private-plugins).
 3. Configure the fields below, save, and preview or refresh the plugin.
 
@@ -58,4 +53,4 @@ Here, the project ID is **8** and the view ID is **53**, so enter `8:53` in **Pr
 
 ## Development
 
-The polling configuration and form fields are in `src/settings.yml`; `src/shared.liquid` contains the shared display logic, and the other Liquid files select a screen layout. After changing the source, rebuild the import ZIP using the command above and check all four layouts in the TRMNL preview.
+The polling configuration and form fields are in `src/settings.yml`; `src/shared.liquid` contains the shared display logic, and the other Liquid files select a screen layout. Check changes in all four layouts in the TRMNL preview.

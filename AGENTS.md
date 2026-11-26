@@ -13,17 +13,10 @@ This repository is a TRMNL private plugin for Vikunja. Preserve user changes and
 - Task hierarchy comes from `related_tasks.parenttask`. Shared markup reconstructs two subtask levels from returned tasks. Filtered-out parents result in visible children becoming roots; deeper descendants are omitted. There are at most six configured projects and one page of up to 100 tasks per request.
 - Full view uses CSS multi-column layout with `column-fill: auto` to preserve project/task sequence and fill the left column before the right. An earlier TRMNL overflow/group-header implementation interleaved project headers and tasks in practice; do not reintroduce it without testing multiple projects and a column break. Smaller views use one column. Excess content is clipped. Keep the bottom title bar a sibling of the layout.
 
-## Validation and packaging
+## Validation and releases
 
 Validate changes against both empty and populated API responses, multiple projects, nesting, view ordering, and the Done today toggle. Check the full and three mashup layouts in the TRMNL editor or a compatible `trmnlp` preview; archive integrity or YAML parsing alone does not prove the screen renders correctly. The latest layout changes were not locally render-tested because the TRMNL preview runtime was unavailable.
 
-For a live API check, obtain explicit authorization before accessing a real instance, use the local `.env` without echoing secrets or task contents, and remember the current local token variable is spelled `VIKINJA_TOKEN`. A prior read-only test confirmed that the general project endpoint could return a task completed today while the selected list view excluded it. This is an observation from one instance, not a guarantee for every version.
+For live API checks, the local `.env` provides `VIKUNJA_SERVER` and `VIKUNJA_TOKEN`. Use them to validate requests when the task authorizes access to the instance, without echoing credentials or task contents. A prior read-only test confirmed that the general project endpoint could return a task completed today while the selected list view excluded it. This is an observation from one instance, not a guarantee for every version.
 
-Create the TRMNL import archive as a flat ZIP with only the six files below, not the repository, `.env`, README, or screenshot:
-
-```sh
-zip -j vikunja-trmnl-import.zip src/settings.yml src/shared.liquid src/full.liquid src/half_horizontal.liquid src/half_vertical.liquid src/quadrant.liquid
-unzip -t vikunja-trmnl-import.zip
-```
-
-TRMNL's import ZIP is separate from the source tree. If updating an existing archive, remove stale entries safely or use `zip -FS` with the explicit six-file list. Do not claim visual validation unless it was actually performed.
+Users download the import ZIP from the [releases page](https://github.com/jaroslawhartman/trmnl-vikunja/releases). Do not claim visual validation unless it was actually performed.
